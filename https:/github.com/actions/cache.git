@@ -1,0 +1,275 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the maincommitmeld branch
+  push:
+    branches: [ maincommitmeld ]
+  pull_request:
+    branches: [ maincommitmeld ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+    
+- name: Cache
+  uses: actions/cache@v2.1.7
+  with:
+    # A list of files, directories, and wildcard patterns to cache and restore
+    path: 
+    # An explicit key for restoring and saving the cache
+    key: 
+    # An ordered list of keys to use for restoring the cache if no cache hit occurred for key
+    restore-keys: # optional
+    # The chunk size used to split up large files during upload, in bytes
+    upload-chunk-size: # optional
+    
+    - name: Setup Node.js environment
+  uses: actions/setup-node@v2.5.1
+  with:
+    # Set always-auth in npmrc
+    always-auth: # optional, default is false
+    # Version Spec of the version to use.  Examples: 12.x, 10.15.1, >=10.15.0
+    node-version: # optional
+    # File containing the version Spec of the version to use.  Examples: .nvmrc, .node-version
+    node-version-file: # optional
+    # Target architecture for Node to use. Examples: x86, x64. Will use system architecture by default.
+    architecture: # optional
+    # Set this option if you want the action to check for the latest available version that satisfies the version spec
+    check-latest: # optional
+    # Optional registry to set up for auth. Will set the registry in a project level .npmrc and .yarnrc file, and set up auth to read in from env.NODE_AUTH_TOKEN
+    registry-url: # optional
+    # Optional scope for authenticating against scoped registries
+    scope: # optional
+    # Used to pull node distributions from node-versions.  Since there's a default, this is typically not supplied by the user.
+    token: # optional, default is ${{ github.token }}
+    # Used to specify a package manager for caching in the default directory. Supported values: npm, yarn, pnpm
+    cache: # optional
+    # Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.
+    cache-dependency-path: # optional
+    # Deprecated. Use node-version instead. Will not be supported after October 1, 2019
+    version: # optional
+
+    steps:
+- uses: actions/checkout@v2
+- uses: actions/setup-dotnet@v1
+  with:
+    dotnet-version: '3.1.x' # SDK Version to use; x will use the latest version of the 3.1 channel
+- run: dotnet build <my project>
+- name: Cache
+  uses: actions/cache@v2.1.7
+  - uses: actions/cache@v2
+  with:
+    path: ~/.cache/pip
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
+    
+     uses: actions/cache@v2
+  if: startsWith(runner.os, 'Linux')
+  with:
+    path: ~/.cache/pip
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
+
+- uses: actions/cache@v2
+  if: startsWith(runner.os, 'macOS')
+  with:
+    path: ~/Library/Caches/pip
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
+
+- uses: actions/cache@v2
+  if: startsWith(runner.os, 'Windows')
+  with:
+    path: ~\AppData\Local\pip\Cache
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
+      
+      jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+        - os: ubuntu-latest
+          path: ~/.cache/pip
+        - os: macos-latest
+          path: ~/Library/Caches/pip
+        - os: windows-latest
+          path: ~\AppData\Local\pip\Cache
+    steps:
+    - uses: actions/cache@v2
+      with:
+        path: ${{ matrix.path }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+         ${{ runner.os }}-pip-
+
+
+- name: Get pip cache dir
+  id: pip-cache
+  run: |
+    echo "::set-output name=dir::$(pip cache dir)"
+
+- name: pip cache
+  uses: actions/cache@v2
+  with:
+    path: ${{ steps.pip-cache.outputs.dir }}
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
+      
+      - name: Set up Python
+  # The actions/cache step below uses this id to get the exact python version
+  id: setup-python
+  uses: actions/setup-python@v2
+
+  ⋮
+
+- uses: actions/cache@v2
+  with:
+    path: ~/.local/share/virtualenvs
+    key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipenv-${{ hashFiles('Pipfile.lock') }}
+    
+    
+    - name: Set RENV_PATHS_ROOT
+  shell: bash
+  run: |
+    echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
+- name: Install and activate renv
+  run: |
+    install.packages("renv")
+    renv::activate()
+  shell: Rscript {0}
+- name: Get R and OS version
+  id: get-version
+  run: |
+    cat("##[set-output name=os-version;]", sessionInfo()$running, "\n", sep = "")
+    cat("##[set-output name=r-version;]", R.Version()$version.string, sep = "")
+  shell: Rscript {0}
+- name: Restore Renv package cache
+  uses: actions/cache@v2
+  with:
+    path: ${{ env.RENV_PATHS_ROOT }}
+    key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{ inputs.cache-version }}-${{ hashFiles('renv.lock') }}
+    restore-keys: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{inputs.cache-version }}-
+    - name: Set RENV_PATHS_ROOT
+  shell: bash
+  run: |
+    echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
+- name: Install and activate renv
+  run: |
+    install.packages("renv")
+    renv::activate()
+  shell: Rscript {0}
+- name: Get R and OS version
+  id: get-version
+  run: |
+    cat("##[set-output name=os-version;]", sessionInfo()$running, "\n", sep = "")
+    cat("##[set-output name=r-version;]", R.Version()$version.string, sep = "")
+  shell: Rscript {0}
+- name: Restore Renv package cache
+  uses: actions/cache@v2
+  with:
+    path: ${{ env.RENV_PATHS_ROOT }}
+    key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{ inputs.cache-version }}-${{ hashFiles('renv.lock') }}
+    restore-keys: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{inputs.cache-version }}-
+    
+    - name: Get pip cache dir
+  id: pip-cache
+  run: |
+    echo "::set-output name=dir::$(pip cache dir)"
+
+- name: pip cache
+  uses: actions/cache@v2
+  with:
+    path: ${{ steps.pip-cache.outputs.dir }}
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    restore-keys: |
+      ${{ runner.os }}-pip-
+      - name: Set RENV_PATHS_ROOT
+  shell: bash
+  run: |
+    echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
+- name: Install and activate renv
+  run: |
+    install.packages("renv")
+    renv::activate()
+  shell: Rscript {0}
+- name: Get R and OS version
+  id: get-version
+  run: |
+    cat("##[set-output name=os-version;]", sessionInfo()$running, "\n", sep = "")
+    cat("##[set-output name=r-version;]", R.Version()$version.string, sep = "")
+  shell: Rscript {0}
+- name: Restore Renv package cache
+  uses: actions/cache@v2
+  with:
+    path: ${{ env.RENV_PATHS_ROOT }}
+    key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{ inputs.cache-version }}-${{ hashFiles('renv.lock') }}
+    restore-keys: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{inputs.cache-version }}-
+    
+    - uses: ruby/setup-ruby@v1
+  with:
+    ruby-version: ...
+    bundler-cache: true
+      
+- uses: actions/cache@v2
+  with:
+    path: |
+      ~/.cargo/bin/
+      ~/.cargo/registry/index/
+      ~/.cargo/registry/cache/
+      ~/.cargo/git/db/
+      target/
+    key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}      
+    
+    - name: Cache SBT
+  uses: actions/cache@v2
+  with:
+    path: |
+      ~/.ivy2/cache
+      ~/.sbt
+    key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}
+    
+    - uses: actions/cache@v2
+  with:
+    path: Pods
+    key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-pods-
+      
+      - uses: actions/cache@v2
+  with:
+    path: .build
+    key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+    restore-keys: |
+      ${{ runner.os }}-spm-
